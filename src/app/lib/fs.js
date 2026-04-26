@@ -1,4 +1,3 @@
-import { exec } from 'child_process'
 import fs, { promises as fss } from 'fs'
 import log from '../common/log.js'
 import { isWin, isMac, tempDir } from '../common/runtime-constants.js'
@@ -8,11 +7,55 @@ import { promisify } from 'util'
 import { Bash } from 'node-bash'
 import * as tar from 'tar'
 import { getSizeCount, getSizeCountWin } from '../common/count-folder-data.js'
+import { exec, spawn } from 'child_process'
+const execAsync = promisify(exec)
 
 const ROOT_PATH = '/'
-const execAsync = promisify(
-  exec
-)
+
+function encodeUtf8Base64 (value) {
+  return Buffer.from(String(value), 'utf8').toString('base64')
+}
+
+function spawnDetachedCommand (command, args, options = {}) {
+  return new Promise((resolve, reject) => {
+    const child = spawn(command, args, {
+      detached: false,
+      stdio: ['ignore', 'ignore', 'pipe'],
+      ...options
+    })
+    let stderr = ''
+
+    child.stderr.on('data', data => {
+      stderr += data.toString()
+    })
+    child.on('error', reject)
+
+    let settled = false
+    const settle = (err) => {
+      if (settled) {
+        return
+      }
+      settled = true
+      clearTimeout(timer)
+      child.unref()
+      if (err) {
+        reject(err)
+      } else {
+        resolve()
+      }
+    }
+
+    child.on('close', code => {
+      if (code !== 0) {
+        settle(new Error(stderr.trim() || `Command exited with code ${code}`))
+      } else {
+        settle(null)
+      }
+    })
+
+    const timer = setTimeout(() => settle(null), 5000)
+  })
+}
 
 // Encoding function
 function encodeUint8Array (uint8Arr) {
@@ -110,16 +153,22 @@ const touch = (localFilePath) => {
  * @param {string} localFolderPath absolute path
  */
 const openFile = (localFilePath) => {
-  let cmd
   if (isWin) {
-    cmd = `Invoke-Item '${localFilePath}'`
-    return runWinCmd(cmd)
+    const script = '$path = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($env:ELECTERM_OPEN_FILE_PATH_B64)); Invoke-Item -LiteralPath $path'
+    return spawnDetachedCommand('powershell.exe', [
+      '-NoLogo',
+      '-NonInteractive',
+      '-Command',
+      script
+    ], {
+      windowsHide: true,
+      env: {
+        ...process.env,
+        ELECTERM_OPEN_FILE_PATH_B64: encodeUtf8Base64(localFilePath)
+      }
+    })
   }
-  cmd = (isMac
-    ? 'open'
-    : 'xdg-open') +
-    ` "${localFilePath}"`
-  return run(cmd)
+  return spawnDetachedCommand(isMac ? 'open' : 'xdg-open', [localFilePath])
 }
 
 /**

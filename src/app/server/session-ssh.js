@@ -83,6 +83,13 @@ class TerminalSshBase extends TerminalBase {
     const authOrder = this.getAuthOrder(connectOptions)
     let attemptedMethods = new Set()
 
+    const isMethodAllowed = (type, allowedSet) => {
+      if (type === 'agent') {
+        return allowedSet.has('agent') || allowedSet.has('publickey')
+      }
+      return allowedSet.has(type)
+    }
+
     return (authsLeft, partialSuccess) => {
       if (partialSuccess) {
         this.authPartiallySucceeded = true
@@ -94,7 +101,7 @@ class TerminalSshBase extends TerminalBase {
         : authOrder
       const allowedSet = new Set(allowedMethods)
       const nextAuth = authOrder.find(type => {
-        return allowedSet.has(type) && (partialSuccess || !attemptedMethods.has(type))
+        return isMethodAllowed(type, allowedSet) && (partialSuccess || !attemptedMethods.has(type))
       })
 
       if (!nextAuth) {
@@ -502,7 +509,6 @@ class TerminalSshBase extends TerminalBase {
   }
 
   getSSHKeys () {
-    console.log('sshKeysPath', sshKeysPath)
     try {
       return fs.readdirSync(sshKeysPath)
         .filter(file => file.endsWith('.pub'))

@@ -7,6 +7,22 @@ import { fileURLToPath } from 'url'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
+const widgetIdPattern = /^[a-z0-9-]+$/
+
+function resolveWidgetPath (widgetId, widgetDirectory = __dirname) {
+  if (typeof widgetId !== 'string' || !widgetIdPattern.test(widgetId)) {
+    throw new Error(`Invalid widget ID: ${widgetId}`)
+  }
+
+  const widgetPath = path.resolve(widgetDirectory, `widget-${widgetId}.js`)
+  const relativePath = path.relative(widgetDirectory, widgetPath)
+
+  if (relativePath.startsWith('..') || path.isAbsolute(relativePath)) {
+    throw new Error(`Invalid widget ID: ${widgetId}`)
+  }
+
+  return widgetPath
+}
 
 // Store running widget instances
 const runningInstances = new Map()
@@ -69,8 +85,7 @@ function hasRunningInstance (widgetId) {
 }
 
 async function runWidget (widgetId, config) {
-  const file = `widget-${widgetId}.js`
-  const widgetPath = path.join(__dirname, file)
+  const widgetPath = resolveWidgetPath(widgetId)
   const widget = await import(`file://${widgetPath}`)
 
   const { type, singleInstance } = widget.widgetInfo

@@ -2,6 +2,25 @@ import fs from 'fs'
 import path from 'path'
 
 const fsPromises = fs.promises
+const pathSeparatorPattern = /[\\/]/
+function resolveRenamePath (dir, newName) {
+  if (typeof newName !== 'string' || !newName.trim() || newName === '.' || newName === '..') {
+    throw new Error('Template produced an invalid file name')
+  }
+
+  if (pathSeparatorPattern.test(newName)) {
+    throw new Error('Template must not include path separators')
+  }
+
+  const newPath = path.resolve(dir, newName)
+  const relativePath = path.relative(dir, newPath)
+
+  if (relativePath.startsWith('..') || path.isAbsolute(relativePath)) {
+    throw new Error('Template must keep files within the source directory')
+  }
+
+  return newPath
+}
 
 // Define defaults in one place
 const DEFAULTS = {
@@ -132,7 +151,7 @@ async function widgetRun (params = {}) {
       const filePath = files[i]
       const dir = path.dirname(filePath)
       const newName = await processTemplate(template, filePath, i, startNumber, preserveCase)
-      const newPath = path.join(dir, newName)
+      const newPath = resolveRenamePath(dir, newName)
       await fsPromises.rename(filePath, newPath)
 
       results.push({

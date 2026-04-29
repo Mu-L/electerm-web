@@ -1,5 +1,5 @@
 import log from '../common/log.js'
-import socks from 'socksv5-server'
+import * as socks from 'socksv5-server'
 import net from 'net'
 
 export function forwardRemoteToLocal ({

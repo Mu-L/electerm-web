@@ -41,6 +41,9 @@ class TerminalLocal extends TerminalBase {
     const cwd = process.env[platform === 'win32' ? 'USERPROFILE' : 'HOME']
     const argv = platform.startsWith('darwin') ? ['--login', ...(arg || [])] : arg
     const env = Object.assign({}, process.env)
+    delete env.ELECTRON_RUN_AS_NODE
+    delete env.NODE_OPTIONS
+    delete env.ELECTRON_NO_ATTACH_CONSOLE
     this.term = pty.spawn(exec, argv, {
       name: term,
       encoding: null,

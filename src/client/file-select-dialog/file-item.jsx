@@ -3,18 +3,20 @@ import classNames from 'classnames'
 export default function FileItem (props) {
   const {
     file,
-    selected
+    selected,
+    onClick,
+    onDbClick
   } = props
-  const handleClick = () => {
-    props.onClick(file)
+  const handleClick = (e) => {
+    onClick(file, e)
   }
   const handleDbClick = () => {
-    props.onDbClick(file)
+    onDbClick(file)
   }
   const cls = classNames(
     'dialog-file-item elli',
     {
-      selected: selected?.name === file.name
+      selected
     }
   )
   return (

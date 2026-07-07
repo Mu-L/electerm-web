@@ -37,6 +37,8 @@ export default class FileSelectDialog extends Component {
       localShowHiddenFile: false,
       localPathHistory: [],
       fileSelected: null,
+      selectedFiles: [],
+      lastClickedIndex: null,
       pageSize: 100,
       localInputFocus: false,
       list: [],
@@ -106,7 +108,7 @@ export default class FileSelectDialog extends Component {
   }
 
   handlePageChange = (page, pageSize) => {
-    this.setState({ page, pageSize })
+    this.setState({ page, pageSize, lastClickedIndex: null })
   }
 
   handlePageSizeChange = (k, pageSize) => {
@@ -131,8 +133,16 @@ export default class FileSelectDialog extends Component {
     this.setState({ opts: null })
   }
 
+  isMultiSelectMode = () => {
+    const { opts, isSaveDialog } = this.state
+    const properties = opts?.properties || []
+    return !isSaveDialog &&
+      properties.includes('openFile') &&
+      properties.includes('multiSelections')
+  }
+
   handleSubmit = () => {
-    const { fileSelected, localPath, isSaveDialog, saveFileName } = this.state
+    const { selectedFiles, fileSelected, localPath, isSaveDialog, saveFileName } = this.state
     if (isSaveDialog) {
       const name = saveFileName.trim()
       if (!name) {
@@ -143,6 +153,15 @@ export default class FileSelectDialog extends Component {
       window.postMessage({
         type: 'handleSaveDialog',
         data: { canceled: false, filePath }
+      }, '*')
+      return
+    }
+    if (selectedFiles.length) {
+      const paths = selectedFiles.map(f => resolve(localPath, f.name))
+      this.setState({ opts: null })
+      window.postMessage({
+        type: 'handleDialog',
+        data: paths
       }, '*')
       return
     }
@@ -159,7 +178,12 @@ export default class FileSelectDialog extends Component {
   }
 
   localList = async () => {
-    this.setState({ loading: true, fileSelected: null })
+    this.setState({
+      loading: true,
+      fileSelected: null,
+      selectedFiles: [],
+      lastClickedIndex: null
+    })
     const {
       localPath,
       opts,
@@ -249,16 +273,60 @@ export default class FileSelectDialog extends Component {
     }
   }
 
-  handleClickFile = item => {
+  handleClickFile = (item, index, event) => {
     const { isSaveDialog } = this.state
-    if (isSaveDialog && !item.isDirectory) {
+    if (isSaveDialog) {
+      if (!item.isDirectory) {
+        this.setState({
+          fileSelected: item,
+          saveFileName: item.name,
+          selectedFiles: [item]
+        })
+      } else {
+        this.setState({
+          fileSelected: item,
+          selectedFiles: [item]
+        })
+      }
+      return
+    }
+    if (!this.isMultiSelectMode()) {
       this.setState({
         fileSelected: item,
-        saveFileName: item.name
+        selectedFiles: [item],
+        lastClickedIndex: index
       })
+      return
+    }
+    // multi-select file mode
+    const { selectedFiles, lastClickedIndex, list } = this.state
+    const shift = event?.shiftKey
+    const meta = event?.metaKey || event?.ctrlKey
+    if (shift && lastClickedIndex !== null) {
+      const start = Math.min(lastClickedIndex, index)
+      const end = Math.max(lastClickedIndex, index)
+      const range = list.slice(start, end + 1)
+      this.setState({
+        selectedFiles: range,
+        fileSelected: item
+      })
+      event?.preventDefault?.()
+    } else if (meta) {
+      const exists = selectedFiles.some(f => f.name === item.name)
+      const next = exists
+        ? selectedFiles.filter(f => f.name !== item.name)
+        : [...selectedFiles, item]
+      this.setState({
+        selectedFiles: next,
+        fileSelected: next.length ? item : null,
+        lastClickedIndex: index
+      })
+      event?.preventDefault?.()
     } else {
       this.setState({
-        fileSelected: item
+        selectedFiles: [item],
+        fileSelected: item,
+        lastClickedIndex: index
       })
     }
   }
@@ -333,11 +401,13 @@ export default class FileSelectDialog extends Component {
     const e = window.translate
     const {
       isSaveDialog,
-      fileSelected
+      selectedFiles
     } = this.state
     const opts = this.state.opts
     const properties = opts?.properties || []
-    const disabled = !isSaveDialog && properties.includes('openFile') && !fileSelected
+    const disabled = !isSaveDialog &&
+      properties.includes('openFile') &&
+      selectedFiles.length === 0
     const noBrowserTransfer = opts?.noBrowserTransfer
     const showBrowserUpload = !noBrowserTransfer && !isSaveDialog && properties.includes('openFile')
     const showBrowserDownload = !noBrowserTransfer && !isSaveDialog && opts?.content
@@ -384,19 +454,22 @@ export default class FileSelectDialog extends Component {
   }
 
   renderList () {
-    const { list, fileSelected, page, pageSize } = this.state
+    const { list, selectedFiles, page, pageSize } = this.state
     const all = list.slice((page - 1) * pageSize, page * pageSize)
+    const offset = (page - 1) * pageSize
+    const selectedNames = new Set(selectedFiles.map(f => f.name))
     return (
       <div className='file-dialog-list-wrap'>
         {
           all.map((item, i) => {
+            const index = offset + i
             return (
               <FileItem
                 file={item}
                 key={item.name}
-                selected={fileSelected}
+                selected={selectedNames.has(item.name)}
                 onDbClick={this.handleDbClickFile}
-                onClick={this.handleClickFile}
+                onClick={(file, ev) => this.handleClickFile(file, index, ev)}
               />
             )
           })

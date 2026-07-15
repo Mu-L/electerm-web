@@ -20,6 +20,15 @@ import { logDir } from '../server/session-log.js'
 import { resolve } from 'path'
 import fs from 'fs'
 
+const defaultAIPreset = {
+  baseURLAI: 'https://ai.electerm.org/api/ai',
+  apiPathAI: '/chat/completions',
+  modelAI: 'mistral-small-latest',
+  authHeaderNameAI: 'Authorization: Bearer',
+  id: 'ai.electerm.org',
+  nameAI: 'ai.electerm.org(default free)'
+}
+
 let needMigrate
 
 function buildServer () {
@@ -78,6 +87,7 @@ export async function index (req, res) {
     home,
     version: packInfo.version,
     siteName: packInfo.name,
+    defaultAIPreset,
     fsFunctions,
     isWebApp: true,
     extIconPath: cdn + extIconPath,

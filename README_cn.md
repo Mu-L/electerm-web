@@ -13,7 +13,7 @@
 Powered by [manate](https://github.com/tylerlong/manate)
 
 [![GitHub version](https://img.shields.io/github/release/electerm/electerm/all.svg)](https://github.com/electerm/electerm/releases)
-[![license](https://img.shields.io/github/license/electerm/electerm.svg)](https://github.com/electerm/electerm-dev/blob/master/LICENSE)
+[![license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/electerm/electerm-dev/blob/master/LICENSE)
 [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
 [![Get it from the Snap Store](https://img.shields.io/badge/Snap-Store-green)](https://snapcraft.io/electerm)
 [![Get it from the Microsoft Store](https://img.shields.io/badge/Microsoft-Store-blue)](https://www.microsoft.com/store/apps/9NCN7272GTFF)
@@ -26,6 +26,7 @@ Powered by [manate](https://github.com/tylerlong/manate)
 - [electerm-web-docker](https://github.com/electerm/electerm-web-docker): electerm-web的docker镜像
 - [electerm online](https://cloud.electerm.org): 公共免费在线electerm应用
 - [electerm demo](https://demo.electerm.org): 在线演示
+- [electerm AI](https://ai.electerm.org): 免费为 electerm 用户提供 AI
 - [electerm deb repo](https://repos.electerm.org/deb): Debian repo of electerm
 - [electerm rpm repo](https://repos.electerm.org/rpm): RPM repo of electerm
 

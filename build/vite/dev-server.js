@@ -29,10 +29,19 @@ const port = env.PORT || 5572
 const host = env.HOST || '127.0.0.1'
 const h = ''
 const tar = `http://${host}:${port}`
+const defaultAIPreset = {
+  baseURLAI: 'https://ai.electerm.org/api/ai',
+  apiPathAI: '/chat/completions',
+  modelAI: 'mistral-small-latest',
+  authHeaderNameAI: 'Authorization: Bearer',
+  id: 'ai.electerm.org',
+  nameAI: 'ai.electerm.org(default free)'
+}
 const base = {
   version: pack.version,
   isDev: !isProd,
   siteName: pack.name,
+  defaultAIPreset,
   isWin,
   isMac,
   fsFunctions,

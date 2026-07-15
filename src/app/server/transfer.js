@@ -178,11 +178,6 @@ export class Transfer {
       return th.onError(err)
     }
     this.fsize = attrs.size
-    // Store source mtime (in ms) for preserving after transfer
-    // attrs.mtime is a Date for local fs, but a number (seconds) for SFTP
-    this.srcMtime = attrs.mtime instanceof Date
-      ? attrs.mtime.getTime()
-      : attrs.mtime * 1000
     dst.open(dstPath, 'w', this.onDstOpen)
   }
 
@@ -250,22 +245,10 @@ export class Transfer {
         }
       }
 
-      // Preserve source file mtime on destination after successful transfer
-      if (!err && th.srcMtime && canCloseDst) {
-        const mtimeDate = new Date(th.srcMtime)
-        dst.futimes(th.dstHandle, mtimeDate, mtimeDate, (utimesErr) => {
-          if (utimesErr) {
-            // Try utimes() as fallback for sftp servers that may not support futimes()
-            dst.utimes(dstPath, mtimeDate, mtimeDate, () => {
-              closeHandles()
-            })
-            return
-          }
-          closeHandles()
-        })
-        return
-      }
-
+      // Do not preserve source file mtime on destination after transfer.
+      // The uploaded/downloaded file should have the transfer time as both
+      // create time and modify time, which is the common practice for
+      // SFTP/FTP clients (e.g. OpenSSH sftp, FileZilla).
       closeHandles()
     }
 

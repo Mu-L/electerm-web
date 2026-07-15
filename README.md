@@ -11,7 +11,7 @@
 This is web app version of [electerm app](https://github.com/electerm/electerm), running in browser, almost has the same features as the desktop version.
 
 [![GitHub version](https://img.shields.io/github/release/electerm/electerm/all.svg)](https://github.com/electerm/electerm/releases)
-[![license](https://img.shields.io/github/license/electerm/electerm.svg)](https://github.com/electerm/electerm-dev/blob/master/LICENSE)
+[![license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/electerm/electerm-dev/blob/master/LICENSE)
 [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
 [![Get it from the Snap Store](https://img.shields.io/badge/Snap-Store-green)](https://snapcraft.io/electerm)
 [![Get it from the Microsoft Store](https://img.shields.io/badge/Microsoft-Store-blue)](https://www.microsoft.com/store/apps/9NCN7272GTFF)
@@ -24,6 +24,7 @@ electerm is open-sourced terminal/ssh/sftp/telnet/serialport/RDP/VNC/Spice/ftp c
 - [electerm-web-docker](https://github.com/electerm/electerm-web-docker): Docker image for electerm-web
 - [electerm online](https://cloud.electerm.org): Public free online electerm app
 - [electerm demo](https://demo.electerm.org): Online demo
+- [electerm AI](https://ai.electerm.org): Free AI for electerm users
 - [electerm deb repo](https://repos.electerm.org/deb): Debian repo of electerm
 - [electerm rpm repo](https://repos.electerm.org/rpm): RPM repo of electerm
 
